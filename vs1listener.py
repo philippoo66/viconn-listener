@@ -104,7 +104,7 @@ def main():
 
     #last1rec_time = 0
     last2rec_time = 0
-    prev_rec = 0
+    recent_rec = 0
 
     buff1 = []
     buff2 = []
@@ -128,11 +128,11 @@ def main():
                     serOpto.write(data1)
                     fdata = True
                     #last1rec_time = time.time()
-                    if(prev_rec == 2):
+                    if(recent_rec == 2):
                         bkp1 = buff1
                         buff1 = []
                         dir_chg = True
-                    prev_rec = 1    
+                    recent_rec = 1    
                     buff1.append(data1)
 
                 # Überprüfen, ob Daten von ser2 empfangen wurden und dann auf ser1 schreiben
@@ -140,7 +140,7 @@ def main():
                     serVicon.write(data2)
                     fdata = True
                     last2rec_time = time.time()
-                    prev_rec = 2
+                    recent_rec = 2
                     buff2.append(data2)
 
 
@@ -159,16 +159,16 @@ def main():
                         bkp2 = buff2
                         buff2 = []
                         try_eval = True
-                        print("dir_chg", utils.bbbstr(bkp1), utils.bbbstr(bkp2))
+                        print("dir_chg, {bkp1}, {bkp2}")  #, utils.bbbstr(bkp1), utils.bbbstr(bkp2))
                     elif(time.time() - last2rec_time > fullraw_eot_time):
                         # eot of opto
-                        prev_rec = 0
+                        recent_rec = 0
                         bkp1 = buff1
                         buff1 = []
                         bkp2 = buff2
                         buff2 = []
                         try_eval = True
-                        print("eot_time", utils.bbbstr(bkp1), utils.bbbstr(bkp2))
+                        print("dir_chg, {bkp1}, {bkp2}")  #, utils.bbbstr(bkp1), utils.bbbstr(bkp2))
                     
                     if(try_eval):
                         dlenidx = 0
@@ -199,7 +199,7 @@ def main():
                         if(addr > 0):
                             # apped to queue to process to MQTT
                             queue.append([addr, bkp2])
-                            print("queue append", addr, utils.bbbstr(bkp2))
+                            print("queue append, {addr:04x}, {bkp2}")  #, addr, utils.bbbstr(c))
 
                 # Wartezeit für die Schleife, um die CPU-Last zu reduzieren
                 time.sleep(0.001)  # Anpassen der Wartezeit je nach Anforderung
