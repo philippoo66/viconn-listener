@@ -17,7 +17,7 @@
 import serial
 import time
 import threading
-#from datetime import datetime
+from datetime import datetime
 
 import settings_ini
 import mqtt_util
@@ -110,79 +110,99 @@ def main():
     buff2 = []
 
     try:
-        while True:
-            # Lesen von Daten von beiden seriellen Schnittstellen
-            data1 = serVicon.read()
-            data2 = serOpto.read()
+        now = datetime.now()
+        ts = now.strftime("%y%m%d%H%M%S")
+        logf = 'serlog_' + ts + '.txt'
+        # Öffnen der Ausgabedatei im Schreibmodus
+        with open(logf, 'a') as f:
+            while True:
+                # Lesen von Daten von beiden seriellen Schnittstellen
+                data1 = serVicon.read()
+                data2 = serOpto.read()
 
-            dir_chg = False
+                dir_chg = False
+                fdata = False
 
-            # Überprüfen, ob Daten von ser1 empfangen wurden und dann auf ser2 schreiben
-            if data1:
-                serOpto.write(data1)
-                #last1rec_time = time.time()
-                if(prev_rec == 2):
-                    bkp1 = buff1
-                    buff1 = []
-                    dir_chg = True
-                prev_rec = 1    
-                buff1.append(data1)
+                # Überprüfen, ob Daten von ser1 empfangen wurden und dann auf ser2 schreiben
+                if data1:
+                    serOpto.write(data1)
+                    fdata = True
+                    #last1rec_time = time.time()
+                    if(prev_rec == 2):
+                        bkp1 = buff1
+                        buff1 = []
+                        dir_chg = True
+                    prev_rec = 1    
+                    buff1.append(data1)
 
-            # Überprüfen, ob Daten von ser2 empfangen wurden und dann auf ser1 schreiben
-            if data2:
-                serVicon.write(data2)
-                last2rec_time = time.time()
-                prev_rec = 2
-                buff2.append(data2)
+                # Überprüfen, ob Daten von ser2 empfangen wurden und dann auf ser1 schreiben
+                if data2:
+                    serVicon.write(data2)
+                    fdata = True
+                    last2rec_time = time.time()
+                    prev_rec = 2
+                    buff2.append(data2)
 
-            if(buff2):
-                try_eval = False
-                if(dir_chg):
-                    dir_chg = False
-                    bkp2 = buff2
-                    buff2 = []
-                    try_eval = True
-                elif(time.time() - last2rec_time > fullraw_eot_time):
-                    # eot of opto
-                    prev_rec = 0
-                    bkp1 = buff1
-                    buff1 = []
-                    bkp2 = buff2
-                    buff2 = []
-                    try_eval = True
-                
-                if(try_eval):
-                    dlenidx = 0
-                    addr = 0
 
-                    if(len(bkp1) == 4 and bkp1[0] == b'\xf7'):
-                        dlenidx = 3
-                    elif (len(bkp1) == 5 and bkp1[0:1] == [b'\x01', b'\xf7']):
-                        dlenidx = 4
+                if fdata:
+                    # Zeitstempel in Millisekunden erzeugen
+                    timestamp_ms = int(time.time() * 1000)
+                    # Daten in hexadezimaler Form mit Zeitstempel und Tab getrennt in die Datei schreiben
+                    f.write(f"{timestamp_ms}\t{data1.hex().upper()}\t{data2.hex().upper()}\n")   #\t{bbbstr(ring_buffer)}\n")
+                     #f.flush()  # Puffer leeren, um sicherzustellen, dass die Daten sofort in die Datei geschrieben werden
 
-                    if(dlenidx > 0):
-                        # KW read request
-                        if(len(bkp2) == int.from_bytes(bkp1[dlenidx], byteorder='litte')):
-                            addr = bkp1[dlenidx-2:dlenidx]
-                            addr = int.from_bytes(addr, byteorder='big')
-                    else:
-                        if(len(bkp1) == 3 and bkp1[0] == b'\xc7'):
-                            dlenidx = 2
-                        elif (len(bkp1) == 4 and bkp1[0:1] == [b'\x01', b'\xc7']):
+
+                if(buff2):
+                    try_eval = False
+                    if(dir_chg):
+                        dir_chg = False
+                        bkp2 = buff2
+                        buff2 = []
+                        try_eval = True
+                        print("dir_chg", utils.bbbstr(bkp1), utils.bbbstr(bkp2))
+                    elif(time.time() - last2rec_time > fullraw_eot_time):
+                        # eot of opto
+                        prev_rec = 0
+                        bkp1 = buff1
+                        buff1 = []
+                        bkp2 = buff2
+                        buff2 = []
+                        try_eval = True
+                        print("eot_time", utils.bbbstr(bkp1), utils.bbbstr(bkp2))
+                    
+                    if(try_eval):
+                        dlenidx = 0
+                        addr = 0
+
+                        if(len(bkp1) == 4 and bkp1[0] == b'\xf7'):
                             dlenidx = 3
-                        
+                        elif (len(bkp1) == 5 and bkp1[0:1] == [b'\x01', b'\xf7']):
+                            dlenidx = 4
+
                         if(dlenidx > 0):
-                            # GWG read request
+                            # KW read request
                             if(len(bkp2) == int.from_bytes(bkp1[dlenidx], byteorder='litte')):
-                                addr = bkp1[dlenidx-1]
+                                addr = bkp1[dlenidx-2:dlenidx]
                                 addr = int.from_bytes(addr, byteorder='big')
+                        else:
+                            if(len(bkp1) == 3 and bkp1[0] == b'\xc7'):
+                                dlenidx = 2
+                            elif (len(bkp1) == 4 and bkp1[0:1] == [b'\x01', b'\xc7']):
+                                dlenidx = 3
+                            
+                            if(dlenidx > 0):
+                                # GWG read request
+                                if(len(bkp2) == int.from_bytes(bkp1[dlenidx], byteorder='litte')):
+                                    addr = bkp1[dlenidx-1]
+                                    addr = int.from_bytes(addr, byteorder='big')
 
-                    if(addr > 0):
-                        # apped to queue to process to MQTT
-                        queue.append([addr, bkp2])
+                        if(addr > 0):
+                            # apped to queue to process to MQTT
+                            queue.append([addr, bkp2])
+                            print("queue append", addr, utils.bbbstr(bkp2))
 
-            # Wartezeit für die Schleife, um die CPU-Last zu reduzieren
-            time.sleep(0.001)  # Anpassen der Wartezeit je nach Anforderung
+                # Wartezeit für die Schleife, um die CPU-Last zu reduzieren
+                time.sleep(0.001)  # Anpassen der Wartezeit je nach Anforderung
 
     except KeyboardInterrupt:
         print("Abbruch durch Benutzer.")
