@@ -124,7 +124,7 @@ def main():
                 fdata = False
 
                 # Überprüfen, ob Daten von ser1 empfangen wurden und dann auf ser2 schreiben
-                if data1:
+                if len(data1) > 0:
                     serOpto.write(data1)
                     fdata = True
                     #last1rec_time = time.time()
@@ -136,7 +136,7 @@ def main():
                     buff1.append(data1)
 
                 # Überprüfen, ob Daten von ser2 empfangen wurden und dann auf ser1 schreiben
-                if data2:
+                if len(data2) > 0:
                     serVicon.write(data2)
                     fdata = True
                     last2rec_time = time.time()
@@ -150,6 +150,7 @@ def main():
                     # Daten in hexadezimaler Form mit Zeitstempel und Tab getrennt in die Datei schreiben
                     f.write(f"{timestamp_ms}\t{data1.hex().upper()}\t{data2.hex().upper()}\n")   #\t{bbbstr(ring_buffer)}\n")
                      #f.flush()  # Puffer leeren, um sicherzustellen, dass die Daten sofort in die Datei geschrieben werden
+                    print(f"fdata, {timestamp_ms}, {data1}, {data2}")
 
 
                 if(buff2):
