@@ -15,8 +15,8 @@
 '''
 
 import utils
-import optolinkvs2
-import onewire_util
+# import optolinkvs2
+# import onewire_util
 import settings_ini
 
 
@@ -99,106 +99,106 @@ def get_retstr(retcode, addr, val) -> str:
 
 
 # 'main' functions +++++++++++++++++++++++++++++
-def response_to_request(request, serViDev) -> tuple[int, bytearray, any, str]:   # retcode, data, value, string_to_pass 
-    ispollitem = False
-    if(isinstance(request, str)):
-        # TCP, MQTT requests
-        parts = request.split(';')
-    else:
-        # poll item
-        ispollitem = True
-        parts = request
+# def response_to_request(request, serViDev) -> tuple[int, bytearray, any, str]:   # retcode, data, value, string_to_pass 
+#     ispollitem = False
+#     if(isinstance(request, str)):
+#         # TCP, MQTT requests
+#         parts = request.split(';')
+#     else:
+#         # poll item
+#         ispollitem = True
+#         parts = request
     
-    numelms = len(parts)
-    data = bytearray()
-    val = None
-    retstr = ''
-    retcode = 0
+#     numelms = len(parts)
+#     data = bytearray()
+#     val = None
+#     retstr = ''
+#     retcode = 0
 
-    if(numelms == 1):
-        # full raw +++++++++++++++++++ "4105000100F80806"
-        bstr = bytes.fromhex(parts[0])
-        serViDev.reset_input_buffer()
-        serViDev.write(bstr)
-        #print("sent to OL:", bbbstr(bstr))
-        data = optolinkvs2.receive_fullraw(settings_ini.fullraw_eot_time,settings_ini.fullraw_timeout, serViDev)
-        val = utils.arr2hexstr(data)
-        retstr = str(val)
-        retcode = 0x01  # attention!
-        #print("recd fr OL:", bbbstr(data))
+#     if(numelms == 1):
+#         # full raw +++++++++++++++++++ "4105000100F80806"
+#         bstr = bytes.fromhex(parts[0])
+#         serViDev.reset_input_buffer()
+#         serViDev.write(bstr)
+#         #print("sent to OL:", bbbstr(bstr))
+#         data = optolinkvs2.receive_fullraw(settings_ini.fullraw_eot_time,settings_ini.fullraw_timeout, serViDev)
+#         val = utils.arr2hexstr(data)
+#         retstr = str(val)
+#         retcode = 0x01  # attention!
+#         #print("recd fr OL:", bbbstr(data))
 
-    elif(numelms > 1):
-        cmnd = parts[0].lower()
-        if(cmnd == "raw"):  # "raw;4105000100F80806"
-            # raw +++++++++++++++++++
-            bstr = bytes.fromhex(parts[1])
-            serViDev.reset_input_buffer()
-            serViDev.write(bstr)
-            #print("sent to OL:", bbbstr(retstr))
-            retcode, _, data = optolinkvs2.receive_vs2telegr(True, True, serViDev)
-            #print("recd fr OL:", ret, ',', bbbstr(data))
-            val = utils.arr2hexstr(data)
-            retstr = f"{retcode};{val}"
-            data = bytearray()
+#     elif(numelms > 1):
+#         cmnd = parts[0].lower()
+#         if(cmnd == "raw"):  # "raw;4105000100F80806"
+#             # raw +++++++++++++++++++
+#             bstr = bytes.fromhex(parts[1])
+#             serViDev.reset_input_buffer()
+#             serViDev.write(bstr)
+#             #print("sent to OL:", bbbstr(retstr))
+#             retcode, _, data = optolinkvs2.receive_vs2telegr(True, True, serViDev)
+#             #print("recd fr OL:", ret, ',', bbbstr(data))
+#             val = utils.arr2hexstr(data)
+#             retstr = f"{retcode};{val}"
+#             data = bytearray()
 
-        elif((cmnd in ["read", "r"]) or ispollitem):  # "read;0x0804;1;0.1;False" or "r;0x2500;22;'b:0:1';0.1"
-            # read +++++++++++++++++++
-            addr = utils.get_int(parts[1])
-            if(addr in settings_ini.w1sensors): 
-                # 1wire sensor
-                retcode, val = onewire_util.read_w1sensor(addr)
-            else:
-                # Optolink item
-                retcode, addr, data = optolinkvs2.read_datapoint_ext(addr, int(parts[2]), serViDev)
-                if(retcode==1):
-                    if(numelms > 3):
-                        if(str(parts[3]).startswith('b:')):
-                            #print(f"H perform_bytebit_filter, ispollitem {ispollitem}")
-                            val = perform_bytebit_filter(data, parts)
-                        else:
-                            signd = False
-                            if(numelms > 4):
-                                signd = utils.get_bool(parts[4])
-                            val = get_value(data, parts[3], signd)
-                    else:
-                        #return raw
-                        val = utils.arr2hexstr(data)
-                elif(data):
-                    # probably error message
-                    val = utils.arr2hexstr(data)  #f"{int.from_bytes(data, 'little')} ({utils.bbbstr(data)})"
-                else:
-                    val = "?"
-            retstr = get_retstr(retcode, addr, val)
+#         elif((cmnd in ["read", "r"]) or ispollitem):  # "read;0x0804;1;0.1;False" or "r;0x2500;22;'b:0:1';0.1"
+#             # read +++++++++++++++++++
+#             addr = utils.get_int(parts[1])
+#             if(addr in settings_ini.w1sensors): 
+#                 # 1wire sensor
+#                 retcode, val = onewire_util.read_w1sensor(addr)
+#             else:
+#                 # Optolink item
+#                 retcode, addr, data = optolinkvs2.read_datapoint_ext(addr, int(parts[2]), serViDev)
+#                 if(retcode==1):
+#                     if(numelms > 3):
+#                         if(str(parts[3]).startswith('b:')):
+#                             #print(f"H perform_bytebit_filter, ispollitem {ispollitem}")
+#                             val = perform_bytebit_filter(data, parts)
+#                         else:
+#                             signd = False
+#                             if(numelms > 4):
+#                                 signd = utils.get_bool(parts[4])
+#                             val = get_value(data, parts[3], signd)
+#                     else:
+#                         #return raw
+#                         val = utils.arr2hexstr(data)
+#                 elif(data):
+#                     # probably error message
+#                     val = utils.arr2hexstr(data)  #f"{int.from_bytes(data, 'little')} ({utils.bbbstr(data)})"
+#                 else:
+#                     val = "?"
+#             retstr = get_retstr(retcode, addr, val)
 
-        elif(cmnd in ["write", "w"]):  # "write;0x6300;1;48"
-            # write +++++++++++++++++++
-            #raise Exception("write noch nicht fertig") #TODO scaling und so
-            bval = (utils.get_int(parts[3])).to_bytes(int(parts[2]), 'little')
-            retcode, addr, data = optolinkvs2.write_datapoint_ext(utils.get_int(parts[1]), bval, serViDev)
-            if(retcode == 1): 
-                val = int.from_bytes(bval, 'little')
-            elif(data):
-                # probably error message
-                val = utils.arr2hexstr(data)  #f"{int.from_bytes(data, 'little')} ({utils.bbbstr(data)})"
-            else:
-                val = "?"
-            retstr = get_retstr(retcode, addr, val)
+#         elif(cmnd in ["write", "w"]):  # "write;0x6300;1;48"
+#             # write +++++++++++++++++++
+#             #raise Exception("write noch nicht fertig") #TODO scaling und so
+#             bval = (utils.get_int(parts[3])).to_bytes(int(parts[2]), 'little')
+#             retcode, addr, data = optolinkvs2.write_datapoint_ext(utils.get_int(parts[1]), bval, serViDev)
+#             if(retcode == 1): 
+#                 val = int.from_bytes(bval, 'little')
+#             elif(data):
+#                 # probably error message
+#                 val = utils.arr2hexstr(data)  #f"{int.from_bytes(data, 'little')} ({utils.bbbstr(data)})"
+#             else:
+#                 val = "?"
+#             retstr = get_retstr(retcode, addr, val)
 
-        elif(cmnd in ["writeraw", "wraw"]):  # "writeraw;0x6300;2A"
-            # write raw +++++++++++++++++++
-            hexstr = str(parts[2]).replace('0x','')
-            bval = utils.hexstr2arr(hexstr)
-            retcode, addr, data = optolinkvs2.write_datapoint_ext(utils.get_int(parts[1]), bval, serViDev)
-            if(retcode == 1): 
-                val = hexstr   #int.from_bytes(bval, 'big')
-            elif(data):
-                # probably error message
-                val = utils.arr2hexstr(data)  #f"{int.from_bytes(data, 'little')} ({utils.bbbstr(data)})"
-            else:
-                val = "?"
-            retstr = get_retstr(retcode, addr, val)
-        else:
-            print("unknown command received:", cmnd)
-    # and finally return...
-    return retcode, data, val, retstr
+#         elif(cmnd in ["writeraw", "wraw"]):  # "writeraw;0x6300;2A"
+#             # write raw +++++++++++++++++++
+#             hexstr = str(parts[2]).replace('0x','')
+#             bval = utils.hexstr2arr(hexstr)
+#             retcode, addr, data = optolinkvs2.write_datapoint_ext(utils.get_int(parts[1]), bval, serViDev)
+#             if(retcode == 1): 
+#                 val = hexstr   #int.from_bytes(bval, 'big')
+#             elif(data):
+#                 # probably error message
+#                 val = utils.arr2hexstr(data)  #f"{int.from_bytes(data, 'little')} ({utils.bbbstr(data)})"
+#             else:
+#                 val = "?"
+#             retstr = get_retstr(retcode, addr, val)
+#         else:
+#             print("unknown command received:", cmnd)
+#     # and finally return...
+#     return retcode, data, val, retstr
 
