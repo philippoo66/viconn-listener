@@ -24,6 +24,9 @@ import mqtt_util
 import utils
 import requests_util
 
+# temp
+settings_ini.data_hex_format = '02x'
+
 
 queue = []
 
