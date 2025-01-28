@@ -31,7 +31,7 @@ queue = []
 def handle_received():
     global queue
     while(True):
-        if(len(queue > 0)):
+        if(len(queue) > 0):
             val = None
             name = ""
             addrdata = queue.pop(0)
