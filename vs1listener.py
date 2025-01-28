@@ -160,7 +160,7 @@ def main():
                         bkp2 = buff2
                         buff2 = []
                         try_eval = True
-                        print(f"dir_chg, {bkp1}, {bkp2}")  #, utils.bbbstr(bkp1), utils.bbbstr(bkp2))
+                        print(f"dir_chg, {bkp1}, {bkp2}")  #, bbbstr(bkp1), bbbstr(bkp2))
                     elif(time.time() - last2rec_time > fullraw_eot_time):
                         # eot of opto
                         recent_rec = 0
@@ -169,7 +169,7 @@ def main():
                         bkp2 = buff2
                         buff2 = []
                         try_eval = True
-                        print(f"dir_chg, {bkp1}, {bkp2}")  #, utils.bbbstr(bkp1), utils.bbbstr(bkp2))
+                        print(f"eot_time, {bkp1}, {bkp2}")  #, bbbstr(bkp1), bbbstr(bkp2))
                     
                     if(try_eval):
                         dlenidx = 0
@@ -200,7 +200,7 @@ def main():
                         if(addr > 0):
                             # apped to queue to process to MQTT
                             queue.append([addr, bkp2])
-                            print(f"queue append, {addr:04x}, {bkp2}")  #, addr, utils.bbbstr(c))
+                            print(f"queue append, {addr:04x}, {bkp2}")  #, addr, bbbstr(bkp2))
 
                 # Wartezeit für die Schleife, um die CPU-Last zu reduzieren
                 time.sleep(0.001)  # Anpassen der Wartezeit je nach Anforderung
@@ -212,6 +212,13 @@ def main():
         serVicon.close()
         serOpto.close()
         mqtt_util.exit_mqtt()
+
+
+
+# utils ++++++++++++++++++++
+def bbbstr(data_buffer):
+    return ' '.join([format(byte, '02X') for byte in data_buffer])
+
 
 if __name__ == "__main__":
     main()
