@@ -150,7 +150,7 @@ def main():
                     # Daten in hexadezimaler Form mit Zeitstempel und Tab getrennt in die Datei schreiben
                     f.write(f"{timestamp_ms}\t{data1.hex().upper()}\t{data2.hex().upper()}\n")   #\t{bbbstr(ring_buffer)}\n")
                     #f.flush()  # Puffer leeren, um sicherzustellen, dass die Daten sofort in die Datei geschrieben werden
-                    print(f"fdata, {timestamp_ms}, {data1}, {data2}")
+                    #print(f"fdata, {timestamp_ms}, {data1}, {data2}")
 
 
                 if(buff2):
