@@ -109,8 +109,8 @@ def main():
     last2rec_time = 0
     recent_rec = 0
 
-    buff1 = []
-    buff2 = []
+    buff1 = bytearray()
+    buff2 = bytearray()
 
     try:
         now = datetime.now()
@@ -133,7 +133,7 @@ def main():
                     #last1rec_time = time.time()
                     if(recent_rec == 2):
                         bkp1 = buff1
-                        buff1 = []
+                        buff1 = bytearray()
                         dir_chg = True
                     recent_rec = 1    
                     buff1.append(data1)
@@ -161,16 +161,16 @@ def main():
                     if(dir_chg):
                         dir_chg = False
                         bkp2 = buff2
-                        buff2 = []
+                        buff2 = bytearray()
                         try_eval = True
                         print(f"dir_chg, {bkp1}, {bkp2}")  #, bbbstr(bkp1), bbbstr(bkp2))
                     elif(time.time() - last2rec_time > fullraw_eot_time):
                         # eot of opto
                         recent_rec = 0
                         bkp1 = buff1
-                        buff1 = []
+                        buff1 = bytearray()
                         bkp2 = buff2
-                        buff2 = []
+                        buff2 = bytearray()
                         try_eval = True
                         print(f"eot_time, {bkp1}, {bkp2}")  #, bbbstr(bkp1), bbbstr(bkp2))
                     
@@ -178,25 +178,30 @@ def main():
                         dlenidx = 0
                         addr = 0
 
-                        if(len(bkp1) == 4 and bkp1[0] == b'\xf7'):
+                        if(len(bkp1) == 4 and bkp1[0] == 0xf7):
                             dlenidx = 3
-                        elif (len(bkp1) == 5 and bkp1[0:1] == [b'\x01', b'\xf7']):
+                        elif (len(bkp1) == 5 and bkp1[0:1] == [0x01, 0xf7]):
                             dlenidx = 4
 
                         if(dlenidx > 0):
                             # KW read request
+                            print(f"KW len, {len(bkp2)}, {bkp1[dlenidx]}")
                             if(len(bkp2) == bkp1[dlenidx]):
-                                addr = int.from_bytes(b''.join(bkp1[dlenidx-2:dlenidx]), byteorder='big')
+                                #addr = int.from_bytes(b''.join(bkp1[dlenidx-2:dlenidx]), byteorder='big')
+                                addr = (bkp1[dlenidx-2] << 8) + bkp1[dlenidx-1]
+                                print(f"KW addr {addr:04x}")
                         else:
-                            if(len(bkp1) == 3 and bkp1[0] == b'\xc7'):
+                            if(len(bkp1) == 3 and bkp1[0] == 0xc7):
                                 dlenidx = 2
-                            elif (len(bkp1) == 4 and bkp1[0:1] == [b'\x01', b'\xc7']):
+                            elif (len(bkp1) == 4 and bkp1[0:1] == [0x01, 0xc7]):
                                 dlenidx = 3
                             
                             if(dlenidx > 0):
+                                print(f"GWG len, {len(bkp2)}, {bkp1[dlenidx]}")
                                 # GWG read request
                                 if(len(bkp2) == bkp1[dlenidx]):
                                     addr = bkp1[dlenidx-1]
+                                    print(f"GWG addr {addr:02x}")
 
                         if(addr > 0):
                             # apped to queue to process to MQTT
