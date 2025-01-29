@@ -186,7 +186,7 @@ def main():
                         if(dlenidx > 0):
                             # KW read request
                             if(len(bkp2) == bkp1[dlenidx]):
-                                addr = int.from_bytes(bkp1[dlenidx-2:dlenidx], byteorder='big')
+                                addr = int.from_bytes(bytes(bkp1[dlenidx-2:dlenidx]), byteorder='big')
                         else:
                             if(len(bkp1) == 3 and bkp1[0] == b'\xc7'):
                                 dlenidx = 2
