@@ -185,9 +185,8 @@ def main():
 
                         if(dlenidx > 0):
                             # KW read request
-                            if(len(bkp2) == int.from_bytes(bkp1[dlenidx], byteorder='litte')):
-                                addr = bkp1[dlenidx-2:dlenidx]
-                                addr = int.from_bytes(addr, byteorder='big')
+                            if(len(bkp2) == int.from_bytes(bkp1[dlenidx], byteorder='little')):
+                                addr = int.from_bytes(bkp1[dlenidx-2:dlenidx], byteorder='big')
                         else:
                             if(len(bkp1) == 3 and bkp1[0] == b'\xc7'):
                                 dlenidx = 2
@@ -196,9 +195,8 @@ def main():
                             
                             if(dlenidx > 0):
                                 # GWG read request
-                                if(len(bkp2) == int.from_bytes(bkp1[dlenidx], byteorder='litte')):
-                                    addr = bkp1[dlenidx-1]
-                                    addr = int.from_bytes(addr, byteorder='big')
+                                if(len(bkp2) == int.from_bytes(bkp1[dlenidx], byteorder='little')):
+                                    addr = int.from_bytes(bkp1[dlenidx-1], byteorder='big')
 
                         if(addr > 0):
                             # apped to queue to process to MQTT
