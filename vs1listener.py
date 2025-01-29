@@ -136,7 +136,7 @@ def main():
                         buff1 = bytearray()
                         dir_chg = True
                     recent_rec = 1    
-                    buff1.append(data1)
+                    buff1 += data1
 
                 # Überprüfen, ob Daten von ser2 empfangen wurden und dann auf ser1 schreiben
                 if len(data2) > 0:
@@ -144,7 +144,7 @@ def main():
                     fdata = True
                     last2rec_time = time.time()
                     recent_rec = 2
-                    buff2.append(data2)
+                    buff2 += data2
 
 
                 if fdata:
