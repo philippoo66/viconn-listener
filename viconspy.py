@@ -41,15 +41,15 @@ def main():
     buff2 = bytearray()
 
     def at_exit():
-        serOpto.close()
-        serVicon.close()
         vlog.write(f"{time.time():.3f};{bbbstr(buff1)};{bbbstr(buff2)}\n")
         vlog.close()
+        serOpto.close()
+        serVicon.close()
 
     atexit.register(at_exit)
 
     last1 = time.time() + 1000
-    last2 = time.time() + 1000
+    last2 = last1
 
     while(True):
         # Lesen von Daten von beiden seriellen Schnittstellen
