@@ -6,12 +6,14 @@ import atexit
 
 PORT_VICON = '/dev/ttyS0'
 PORT_OPTO = '/dev/ttyUSB0'
+
+VERSION = 1
 EOT_TIME = 0.01  # ~2.3ms pro byte
 
 
 
 def main():
-    print("Version 000")
+    print(f"Version {VERSION}")
     print("open serial ports")
     # Konfiguration der seriellen Schnittstellen ++++++++++++++
     # Optolink Kopf
@@ -36,6 +38,7 @@ def main():
     logf = 'spylog_' + ts + '.csv'
     # Öffnen der Ausgabedatei im Schreibmodus
     vlog = open(logf, 'a')
+    vlog.write(f"Version {VERSION}\n")
 
     buff1 = bytearray()
     buff2 = bytearray()
@@ -45,6 +48,7 @@ def main():
         vlog.close()
         serOpto.close()
         serVicon.close()
+        print("exit")
 
     atexit.register(at_exit)
 
@@ -61,32 +65,34 @@ def main():
             serVicon.write(data1)
             buff1 += data1
             last1 = now
-            print(f"O {data1}")
 
             if(buff2):
-                vlog.write(f"{time.time():.3f};;{bbbstr(buff2)}\n")
+                printlog(vlog, f"{last2:.3f};;{bbbstr(buff2)}")
                 buff2 = bytearray()
                 
         if(data2):
             serOpto.write(data2)
             buff2 += data2
             last2 = now
-            print(f"V {data2}")
 
             if(buff1):
-                vlog.write(f"{time.time():.3f};{bbbstr(buff1)};\n")
+                printlog(vlog, f"{last1:.3f};{bbbstr(buff1)};")
                 buff1 = bytearray()
         
         if (buff1) and (now - last1 > EOT_TIME):
-            vlog.write(f"{time.time():.3f};{bbbstr(buff1)};\n")
+            printlog(vlog, f"{last1:.3f};{bbbstr(buff1)};")
             buff1 = bytearray()
             
         if (buff2) and (now - last2 > EOT_TIME):
-            vlog.write(f"{time.time():.3f};;{bbbstr(buff2)}\n")
+            printlog(vlog, f"{last2:.3f};;{bbbstr(buff2)}")
             buff2 = bytearray()
 
         time.sleep(0.001)  # Anpassen der Wartezeit je nach Anforderung
 
+
+def printlog(log, s:str):
+    print(s)
+    log.write(s + "\n")
 
 def bbbstr(data) -> str:
     if not data: return ''
